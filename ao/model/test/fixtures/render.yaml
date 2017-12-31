@@ -1,0 +1,13 @@
+context: testcase
+version1: 1
+version2: 2
+actions:
+- action: keep
+  type:   Node
+  fqn:    /testcase/test/1
+- action: update
+  type:   Node
+  fqn:    /testcase/test/2
+- action: remove
+  type:   Node
+  fqn:    /testcase/test/3

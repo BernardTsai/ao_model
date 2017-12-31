@@ -1,0 +1,37 @@
+---
+"$schema": http://json-schema.org/draft-06/schema#
+title: VNF
+description: A virtualized network function
+type: object
+properties:
+  name:
+    type: string
+    minLength: 3
+    maxLength: 256
+  description:
+    type: string
+    maxLength: 2048
+  state:
+    enum:
+    - initial
+    - creating
+    - created
+    - configuring
+    - starting
+    - started
+    - reconfiguring
+    - stopping
+    - deleting
+    - error
+  version:
+    type: string
+    pattern: "^V(\\d+)\\.(\\d+)\\.(\\d+)$"
+  vendor:
+    type: string
+    minLength: 3
+    maxLength: 256
+required:
+- name
+- state
+- version
+- vendor

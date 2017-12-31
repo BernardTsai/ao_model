@@ -1,0 +1,6 @@
+{
+  "tenant_name": "testcase",
+  "user_name":   "administrator",
+  "password":    "secret",
+  "description": "project administrator"
+}

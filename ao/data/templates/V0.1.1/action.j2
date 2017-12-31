@@ -1,0 +1,10 @@
+---
+Context:   {{context}}
+Version 1: {{version1}}
+Version 2: {{version2}}
+
+Index Action Type              FQN
+================================================================================
+{% for entry in actions %}
+{{"%5s" % loop.index}} {{ "%-6s" % entry.action}} {{"%-17s" % entry.type}} {{ entry.fqn }}
+{% endfor %}

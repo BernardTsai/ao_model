@@ -1,0 +1,449 @@
+{% for vnf in vnfs %}
+{% for tenant in vnf.tenants %}
+---
+- name:         Deploy VNF
+  hosts:        localhost
+  gather_facts: no
+  become:       no
+  connection:   local
+
+  vars:
+    phase: 5
+
+    tenant:
+      name:        "{{tenant.fqn[1:]|replace('/','_')}}"
+      description: "{{tenant.description}}"
+      password:    "secret"
+      cloud:       "SOL-B"
+
+    security_groups:
+{% for component in tenant.components %}
+{% for interface in component.interfaces %}
+{% set component_name = component.fqn[1:].replace('/','_') %}
+{% set network_name   = interface.network.split('/')[-1] %}
+{% set group_name     = component_name+'_'+network_name %}
+    - {{ group_name }}
+{% endfor %}{# interfaces #}
+{% endfor %}{# components #}
+
+    external_security_group_rules:
+{% for component in tenant.components %}
+{% for interface in component.interfaces %}
+{% for rule in interface.rules %}
+{% if rule.mode != "group" %}
+{% set component_name = component.fqn[1:].replace('/','_') %}
+{% set network_name   = interface.network.split('/')[-1] %}
+{% set group_name     = component_name+'_'+network_name %}
+    - group:            {{ group_name }}
+      direction:        {{rule.direction}}
+      protocol:         {{rule.protocol}}
+      min:              {{rule.min}}
+      max:              {{rule.max}}
+      mode:             {{rule.mode}}
+      remote_ip_prefix: {{rule.prefix}}
+{% endif %}{# mode != group  #}
+{% endfor %}{# rules #}
+{% endfor %}{# interfaces #}
+{% endfor %}{# components #}
+
+    internal_security_group_rules:
+{% for component in tenant.components %}
+{% for interface in component.interfaces %}
+{% for rule in interface.rules %}
+{% if rule.mode == "group" %}
+{% set component_name = component.fqn[1:].replace('/','_') %}
+{% set network_name   = interface.network.split('/')[-1] %}
+{% set group_name     = component_name+'_'+network_name %}
+    - group:            {{ group_name }}
+      direction:        {{rule.direction}}
+      protocol:         {{rule.protocol}}
+      min:              {{rule.min}}
+      max:              {{rule.max}}
+      mode:             {{rule.mode}}
+      remote_group:     {{rule.group[1:]|replace('/','_')}}
+{% endif %}{# mode == group  #}
+{% endfor %}{# rules #}
+{% endfor %}{# interfaces #}
+{% endfor %}{# components #}
+
+    networks:
+{% for network in tenant.networks %}
+    - name: {{network.fqn[1:]|replace('/','_')}}
+{% if network.ipv4 is defined %}
+      ipv4:
+        cidr:  "{{network.ipv4.cidr}}"
+{% endif %}{# network.ipv4 #}
+{% if network.ipv6 is defined %}
+      ipv6:
+        cidr:  "{{network.ipv6.cidr}}"
+{% endif %}{# network.ipv6 #}
+{% endfor %}{# networks #}
+
+    ports:
+{% for component in tenant.components %}
+{% for index in range(component.sizing.size) %}
+{% for interface in component.interfaces %}
+    - name:           {{component.fqn[1:]|replace('/','_')}}_{{index}}_{{interface.network.split('/')[-1]}}
+      network:        {{interface.network[1:]|replace('/','_')}}
+      security_group: {{component.fqn[1:]|replace('/','_')}}_{{interface.network.split('/')[-1]}}
+{% endfor %}{# interfaces #}
+{% endfor %}{# loop #}
+{% endfor %}{# components #}
+
+    nodes:
+{% for component in tenant.components %}
+{% for index in range(component.sizing.size) %}
+    - name:              {{component.fqn[1:]|replace('/','_')}}_{{index}}
+      availability_zone: {{component.placement}}
+      flavor:            {{component.flavor}}
+      image:             {{component.image}}
+      key_name:          {{tenant.fqn[1:]|replace('/','_')}}_keypair
+      nics:
+{% for interface in component.interfaces %}
+      - port-name: {{component.fqn[1:]|replace('/','_')}}_{{index}}_{{interface.network.split('/')[-1]}}
+{% endfor %}{# interfaces #}
+{% endfor %}{# loop #}
+{% endfor %}{# components #}
+
+    volumes:
+{% for component in tenant.components %}
+{% for index in range(component.sizing.size) %}
+{% for volume in component.volumes %}
+    - name:        {{component.fqn[1:]|replace('/','_')}}_{{index}}_{{volume.name}}
+      server:      {{component.fqn[1:]|replace('/','_')}}_{{index}}
+      volume_type: {{component.placement}}
+      size:        {{volume.size}}
+      device:      {{volume.device}}
+{% endfor %}{# volumes #}
+{% endfor %}{# loop #}
+{% endfor %}{# components #}
+
+  # ----- TASKS ---------------------------------------------------------------
+
+  tasks:
+  - name: Create Project
+    os_project:
+      cloud:         "{{ '{{' }} tenant.cloud }}"
+      endpoint_type: admin
+      name:          "{{ '{{' }} tenant.name }}"
+      description:   "{{ '{{' }} tenant.description }}"
+      enabled:       True
+      state:         present
+    register: os_project
+    when: phase >= 1
+
+  - name: Create Administrator
+    os_user:
+      cloud:           "{{ '{{' }} tenant.cloud }}"
+      endpoint_type:   admin
+      name:            "{{ '{{' }} tenant.name }}_administrator"
+      password:        "{{ '{{' }} tenant.password }}"
+      state:           present
+      default_project: "{{ '{{' }} tenant.name }}"
+    when: phase >= 1
+
+  - name: Grant Administrator Privileges
+    os_user_role:
+      cloud:           "{{ '{{' }} tenant.cloud }}"
+      endpoint_type:   admin
+      user:            "{{ '{{' }} tenant.name }}_administrator"
+      role:            Member
+      project:         "{{ '{{' }} tenant.name }}"
+      state:           present
+    when: phase >= 1
+
+  - name: Get Admin Credentials
+    os_client_config:
+      clouds:
+        - "{{ '{{' }} tenant.cloud }}"
+    register: cloud
+
+  - name: Calculate credentials
+    set_fact:
+      auth: {auth_url: "{{ '{{' }}cloud.ansible_facts.openstack.clouds[0].auth.auth_url{{ '}}' }}",  username:  "{{ '{{' }} tenant.name }}_administrator",  password:  "{{ '{{' }} tenant.password }}", project_name: "{{ '{{' }} tenant.name }}"}
+
+  - name: Create Key
+    shell:
+      cmd: ssh-keygen -b 2048 -t rsa -N "" -q -f /tmp/{{ '{{' }} tenant.name }}.key
+      creates: /tmp/{{ '{{' }} tenant.name }}.key
+    when: phase >= 1
+
+  - name: Add Key to Administrator Account
+    os_keypair:
+      auth:            "{{ '{{' }} auth }}"
+      name:            "{{ '{{' }} tenant.name }}_keypair"
+      public_key_file: /tmp/{{ '{{' }} tenant.name }}.key.pub
+      state:           present
+    when: phase >= 1
+
+  # ----- SECURITY GROUPS ------------------------------------------------------
+
+  - name: Add Security Groups
+    os_security_group:
+      auth:  "{{ '{{' }} auth }}"
+      name:  "{{ '{{' }} item }}"
+      state: present
+    with_items:
+      - "{{ '{{' }} security_groups }}"
+    when: phase >= 2
+    async: 3600
+    poll: 0
+    register: security_group_results
+
+  - name: Wait for Security Groups
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} security_group_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 2
+
+# ----- SECURITY GROUP RULES ---------------------------------------------------
+
+  - name: Add External Security Group Rules
+    os_security_group_rule:
+      auth:             "{{ '{{' }} auth }}"
+      security_group:   "{{ '{{' }} item.group}}"
+      protocol:         "{{ '{{' }} item.protocol}}"
+      port_range_min:   "{{ '{{' }} item.min}}"
+      port_range_max:   "{{ '{{' }} item.max}}"
+      remote_ip_prefix: "{{ '{{' }} item.remote_ip_prefix}}"
+      state:            present
+    with_items:
+    - "{{ '{{' }} external_security_group_rules }}"
+    when: phase >= 2
+    async: 3600
+    poll: 0
+    register: external_security_group_rules_results
+
+  - name: Wait for External Security Group Rules
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} external_security_group_rules_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 2
+
+  - name: Add Internal Security Group Rules
+    os_security_group_rule:
+      auth:             "{{ '{{' }} auth }}"
+      security_group:   "{{ '{{' }} item.group}}"
+      protocol:         "{{ '{{' }} item.protocol}}"
+      port_range_min:   "{{ '{{' }} item.min}}"
+      port_range_max:   "{{ '{{' }} item.max}}"
+      remote_group:     "{{ '{{' }} item.group}}"
+      state:            present
+    with_items:
+    - "{{ '{{' }} internal_security_group_rules }}"
+    when: phase >= 2
+    async: 3600
+    poll: 0
+    register: internal_security_group_rules_results
+
+  - name: Wait for Internal Security Group Rules
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} internal_security_group_rules_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 2
+
+  # ----- NETWORKS -------------------------------------------------------------
+
+  - name: Add Networks
+    os_network:
+      auth:     "{{ '{{' }} auth }}"
+      name:     "{{ '{{' }} item.name }}"
+      state:    present
+    with_items:
+    - "{{ '{{' }} networks }}"
+    when: phase >= 3
+    async: 3600
+    poll: 0
+    register: network_results
+
+  - name: Wait for Networks
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} network_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 3
+
+  - name: Add IPv4 Subnets
+    os_subnet:
+      auth:         "{{ '{{' }} auth }}"
+      network_name: "{{ '{{' }} item.name }}"
+      name:         "{{ '{{' }} item.name }}_ipv4"
+      ip_version:   4
+      cidr:         "{{ '{{' }} item.ipv4.cidr }}"
+      state:        present
+    with_items:
+    - "{{ '{{' }} networks }}"
+    when: item.ipv4 is defined and phase >= 3
+    async: 3600
+    poll: 0
+    register: ipv4subnet_results
+
+  - name: Wait for IPv4 Subnets
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} ipv4subnet_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: async_result_item.ansible_job_id is defined and phase >= 3
+
+  - name: Add IPv6 Subnets
+    os_subnet:
+      auth:         "{{ '{{' }} auth }}"
+      network_name: "{{ '{{' }} item.name }}"
+      name:         "{{ '{{' }} item.name }}_ipv4"
+      ip_version:   6
+      cidr:         "{{ '{{' }} item.ipv6.cidr }}"
+      state:        present
+    with_items:
+    - "{{ '{{' }} networks }}"
+    when: item.ipv6 is defined and phase >= 3
+    async: 3600
+    poll: 0
+    register: ipv6subnet_results
+
+  - name: Wait for IPv6 Subnets
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} ipv6subnet_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: async_result_item.ansible_job_id is defined and phase >= 3
+
+  # ----- Ports ----------------------------------------------------------------
+
+  - name: Create Ports
+    os_port:
+      auth:    "{{ '{{' }} auth }}"
+      state:   present
+      name:    "{{ '{{' }} item.name }}"
+      network: "{{ '{{' }} item.network }}"
+      security_groups:
+      - "{{ '{{' }} item.security_group }}"
+    with_items:
+    - "{{ '{{' }} ports }}"
+    when: phase >= 4
+    async: 3600
+    poll: 0
+    register: port_results
+
+  - name: Wait for Ports
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} port_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 4
+
+  # ----- Nodes ----------------------------------------------------------------
+
+  - name: Create Nodes
+    os_server:
+      auth:              "{{ '{{' }} auth }}"
+      state:             present
+      name:              "{{ '{{' }} item.name }}"
+      availability_zone: "{{ '{{' }} item.availability_zone }}"
+      flavor:            "{{ '{{' }} item.flavor }}"
+      image:             "{{ '{{' }} item.image }}"
+      key_name:          "{{ '{{' }} item.key_name }}"
+      nics:              "{{ '{{' }} item.nics }}"
+      auto_ip:           no
+      security_groups:
+      - default
+    with_items:
+    - "{{ '{{' }} nodes }}"
+    when: phase >= 5
+    async: 3600
+    poll: 0
+    register: node_results
+
+  - name: Wait for Nodes
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} node_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 5
+
+  - name: Create Volumes
+    os_volume:
+      auth:              "{{ '{{' }} auth }}"
+      state:             present
+      volume_type:       "{{ '{{' }} item.volume_type }}"
+      size:              "{{ '{{' }} item.size }}"
+      display_name:      "{{ '{{' }} item.name }}"
+    with_items:
+    - "{{ '{{' }} volumes }}"
+    when: phase >= 5
+    async: 3600
+    poll: 0
+    register: volume_results
+
+  - name: Wait for Volumes
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} volume_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 5
+
+  - name: Attach Volumes
+    os_server_volume:
+      auth:   "{{ '{{' }} auth }}"
+      state:  present
+      server: "{{ '{{' }} item.server }}"
+      volume: "{{ '{{' }} item.name }}"
+      device: "{{ '{{' }} item.device }}"
+    with_items:
+    - "{{ '{{' }} volumes }}"
+    when: phase >= 5
+    async: 3600
+    poll: 0
+    register: attachment_results
+
+  - name: Wait for Attachments
+    async_status:
+      jid: "{{ '{{' }} async_result_item.ansible_job_id }}"
+    with_items: "{{ '{{' }} attachment_results.results }}"
+    loop_control:
+      loop_var: "async_result_item"
+    register: async_poll_results
+    until: async_poll_results.finished
+    retries: 30
+    when: phase >= 5
+
+{% endfor %}{# tenants #}
+{% endfor %}{# vnfs #}

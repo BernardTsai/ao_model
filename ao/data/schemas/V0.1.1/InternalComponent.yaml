@@ -1,0 +1,166 @@
+---
+"$schema": http://json-schema.org/draft-06/schema#
+title: InternalComponent
+description: A cluster of compute nodes
+type: object
+properties:
+  name:
+    type: string
+    minLength: 3
+    maxLength: 256
+  description:
+    type: string
+    maxLength: 2048
+  state:
+    enum:
+    - initial
+    - creating
+    - created
+    - configuring
+    - starting
+    - started
+    - reconfiguring
+    - stopping
+    - deleting
+    - error
+  version:
+    type: string
+    pattern: "^V(\\d+)\\.(\\d+)\\.(\\d+)"
+  placement:
+    type: string
+    enum:
+    - EXT
+    - INT
+    - MGMT
+  flavor:
+    type: string
+  image:
+    type: string
+  sizing:
+    type: object
+    properties:
+      min:
+        type:    integer
+        minimum: 0
+      max:
+        type:    integer
+        minimum: 0
+      size:
+        type:    integer
+        minimum: 0
+    required:
+    - min
+    - max
+    - size
+  user_data:
+    type: array
+    items:
+      type: string
+  metadata:
+    type: array
+    items:
+      type: string
+  volumes:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        device:
+          type: string
+        size:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+        mount:
+          type: string
+      required:
+        - name
+        - device
+        - size
+        - type
+        - mount
+  interfaces:
+    type: array
+    items:
+      type: object
+      properties:
+        network:
+          type: string
+        type:
+          enum:
+          - mgmt
+          - left
+          - right
+        ipv4_fixed:
+          type: array
+          items:
+            type: string
+        ipv4_allowed:
+          type: array
+          items:
+            type: string
+        ipv6_fixed:
+          type: array
+          items:
+            type: string
+        ipv6_allowed:
+          type: array
+          items:
+            type: string
+        extensions:
+          type: string
+      required:
+      - network
+  dependencies:
+    type: array
+    items:
+      type: object
+      properties:
+        service:
+          type: string
+        network:
+          type: string
+      required:
+      - service
+      - network
+  services:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        network:
+          type: string
+        ports:
+          type: array
+          items:
+            type: object
+            properties:
+              protocol:
+                enum:
+                - tcp
+                - udp
+              min:
+                type: integer
+              max:
+                type: integer
+            required:
+            - protocol
+            - min
+            - max
+      required:
+      - name
+      - network
+      - ports
+required:
+- name
+- state
+- version
+- placement
+- flavor
+- image
+- sizing

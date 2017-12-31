@@ -1,0 +1,14 @@
+{
+  "ANSIBLE_MODULE_ARGS": {
+      "contrail_url": "http://198.18.148.124:8082",
+      "auth_url":     "http://198.18.148.124:35357/v2.0",
+      "username":     "testcase_administrator",
+      "password":     "secret",
+      "project":      "testcase",
+      "network":      "network",
+      "route_target": "65412:12",
+      "ipv4_prefix":  "192.168.1.0",
+      "ipv4_length":  24,
+      "state":        "active"
+    }
+}

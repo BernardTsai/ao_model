@@ -1,0 +1,321 @@
+>> {{context}}/{{version}}.yaml
+---
+schema:      {{schema}}
+type:        Model
+context:     {{context}}
+version:     {{version}}
+consistent:  {{consistent}}
+# ------------------------------------------------------------------------------
+{% if (components is defined) and components %}
+components:
+{% else %}
+components: []
+{% endif %}
+{% for component in components %}
+- fqn:         {{component.fqn}}
+  type:        ExternalComponent
+  name:        {{component.name}}
+  version:     {{component.version}}
+  state:       {{component.state}}
+  description: |
+    {{component.description}}
+  ipv4:        [{{ component.ipv4 | join(', ') }}]
+  ipv6:        [{{ component.ipv6 | join(', ') }}]
+{% if (component.dependencies is defined) and component.dependencies %}
+  dependencies:
+{% else %}
+  dependencies: []
+{% endif %}
+{% for dependency in component.dependencies %}
+  - {service: {{dependency.service}}, network: {{dependency.network}}}
+{% endfor %}{#dependencies #}
+{% if (component.services is defined) and component.services %}
+  services:
+{% else %}
+  services:     []
+{% endif %}
+{% for service in component.services %}
+  - name:    {{service.name}}
+    network: {{service.network}}
+    ports:
+{% for port in service.ports %}
+    - { protocol: {{port.protocol}}, min: {{port.min}}, max: {{port.max}} }
+{% endfor %}{# ports #}
+{% endfor %}{# services #}
+
+{% endfor %}{# components #}
+# ------------------------------------------------------------------------------
+{% if (vnfs is defined) and vnfs %}
+vnfs:
+{% else %}
+vnfs: []
+{% endif %}
+{% for vnf in vnfs %}
+- fqn:     {{vnf.fqn}}
+  type:    VNF
+  name:    {{vnf.name}}
+  version: {{vnf.version}}
+  state:   {{vnf.state}}
+  vendor:  {{vnf.vendor}}
+  description: |
+    {{vnf.description}}
+{% if (vnf.tenants is defined) and vnf.tenants %}
+  # ----------------------------------------------------------------------------
+  tenants:
+{% else %}
+  tenants: []
+{% endif %}
+{% for tenant in vnf.tenants %}
+  - fqn:        {{tenant.fqn}}
+    type:       Tenant
+    name:       {{tenant.name}}
+    version:    {{tenant.version}}
+    state:      {{tenant.state}}
+    datacenter: {{tenant.datacenter}}
+    description: |
+      {{tenant.description}}
+{% if (tenant.flavors is defined) and tenant.flavors %}
+    flavors:
+{% else %}
+    flavors:    []
+{% endif %}
+{% for flavor in tenant.flavors %}
+    - name:      {{flavor.name}}
+      vcpu:      {{flavor.vcpu}}
+      memory:    {{flavor.memory}}
+      swap:      {{flavor.swap}}
+      disk:      {{flavor.disk}}
+      ephemeral: {{flavor.ephemeral}}
+      public:    {{flavor.public}}
+{% endfor %}{# flavors #}
+    # --------------------------------------------------------------------------
+{% if (tenant.networks is defined) and tenant.networks %}
+    networks:
+{% else %}
+    networks: []
+{% endif %}
+{% for network in tenant.networks %}
+    - fqn:     {{network.fqn}}
+      type:    Network
+      name:    {{network.name}}
+      version: {{network.version}}
+      state:   {{network.state}}
+      description: |
+        {{network.description}}
+      target:  {{network.target}}
+{% if network.ipv4 is defined %}
+      ipv4:
+        cidr:      {{network.ipv4.cidr}}
+        gateway:   {{network.ipv4.gateway}}
+        dns:       {{network.ipv4.dns}}
+        dhcp:      {{network.ipv4.dhcp}}
+        start:     {{network.ipv4.start}}
+        end:       {{network.ipv4.end}}
+{% endif %}
+{% if network.ipv6 is defined %}
+      ipv6:
+        cidr:      "{{network.ipv6.cidr}}"
+        gateway:   "{{network.ipv6.gateway}}"
+        dns:       "{{network.ipv6.dns}}"
+        dhcp:      "{{network.ipv6.dhcp}}"
+        start:     "{{network.ipv6.start}}"
+        end:       "{{network.ipv6.end}}"
+{% endif %}
+{% endfor %}{# networks #}
+    # --------------------------------------------------------------------------
+{% if (tenant.components is defined) and tenant.components %}
+    components:
+{% else %}
+    components: []
+{% endif %}
+{% for component in tenant.components %}
+    - fqn:          {{component.fqn}}
+      type:         InternalComponent
+      name:         {{component.name}}
+      version:      {{component.version}}
+      state:        {{component.state}}
+      placement:    {{component.placement}}
+      flavor:       {{component.flavor}}
+      image:        {{component.image}}
+      sizing:       {min: {{component.sizing.min}}, max: {{component.sizing.max}}, size: {{component.sizing.size}}}
+      description: |
+        {{component.description}}
+{% if (component.user_data is defined) and component.user_data %}
+      user_data:
+{% else %}
+      user_data:    []
+{% endif %}
+{% for user_data in component.user_data %}
+      - {{user_data}}
+{% endfor %}{# user_data #}
+{% if (component.metadata is defined) and component.metadata %}
+      metadata:
+{% else %}
+      metadata:    []
+{% endif %}
+{% for metadata in component.metadata %}
+      - {{metadata}}
+{% endfor %}{# metadata #}
+{% if (component.volumes is defined) and component.volumes %}
+      volumes:
+{% else %}
+      volumes: []
+{% endif %}
+{% for volume in component.volumes %}
+      - name:   {{volume.name}}
+        device: {{volume.device}}
+        size:   {{volume.size}}
+        type:   {{volume.type}}
+        mount:  {{volume.mount}}
+{% endfor %}{# volumes #}
+{% if (component.interfaces is defined) and component.interfaces %}
+      interfaces:
+{% else %}
+      interfaces: []
+{% endif %}
+{% for interface in component.interfaces %}
+      - network:      {{interface.network}}
+        ipv4_fixed:   [{{ interface.ipv4_fixed   | join(', ') }}]
+        ipv4_allowed: [{{ interface.ipv4_allowed | join(', ') }}]
+        ipv6_fixed:   [{{ interface.ipv6_fixed   | join(', ') }}]
+        ipv6_allowed: [{{ interface.ipv6_allowed | join(', ') }}]
+{% if interface.type is defined %}
+        type:         {{interface.type}}
+{% endif %}
+{% if (interface.rules is defined) and interface.rules %}
+        rules:
+{% else %}
+        rules:        []
+{% endif %}
+{% for rule in interface.rules %}
+        - direction: {{rule.direction}}
+          mode:      {{rule.mode}}
+          group:     {{rule.group}}
+          protocol:  {{rule.protocol}}
+          min:       {{rule.min}}
+          max:       {{rule.max}}
+          family:    {{rule.family}}
+          prefix:    {{rule.prefix}}
+{% endfor %}{# rules #}
+{% endfor %}{# interfaces #}
+{% if (component.dependencies is defined) and component.dependencies %}
+      dependencies:
+{% else %}
+      dependencies:   []
+{% endif %}
+{% for dependency in component.dependencies %}
+      - {service: {{dependency.service}}, network: {{dependency.network}}}
+{% endfor %}{# dependencies #}
+{% if (component.services is defined) and component.services %}
+      services:
+{% else %}
+      services:       []
+{% endif %}
+{% for service in component.services %}
+      - name:    {{service.name}}
+        network: {{service.network}}
+        ports:
+{% for port in service.ports %}
+        - { protocol: {{port.protocol}}, min: {{port.min}}, max: {{port.max}} }
+{% endfor %}{# ports #}
+{% endfor %}{# services #}
+      # ------------------------------------------------------------------------
+{% if (component.nodes is defined) and component.nodes %}
+      nodes:
+{% else %}
+      nodes: []
+{% endif %}
+{% for node in component.nodes %}
+      - fqn:          {{node.fqn}}
+        type:         Node
+        name:         {{node.name}}
+        version:      {{node.version}}
+        state:        {{node.state}}
+        placement:    {{node.placement}}
+        flavor:       {{node.flavor}}
+        image:        {{node.image}}
+        description: |
+          {{node.description}}
+{% if (node.user_data is defined) and node.user_data %}
+        user_data:
+{% else %}
+        user_data:    []
+{% endif %}
+{% for user_data in node.user_data %}
+        - {{user_data}}
+{% endfor %}{# user_data #}
+{% if (node.metadata is defined) and node.metadata %}
+        metadata:
+{% else %}
+        metadata:    []
+{% endif %}
+{% for metadata in node.metadata %}
+        - {{metadata}}
+{% endfor %}{# metadata #}
+{% if (node.volumes is defined) and node.volumes %}
+        volumes:
+{% else %}
+        volumes: []
+{% endif %}
+{% for volume in node.volumes %}
+        - name:   {{volume.name}}
+          device: {{volume.device}}
+          size:   {{volume.size}}
+          type:   {{volume.type}}
+          mount:  {{volume.mount}}
+{% endfor %}{# volumes #}
+{% if (node.interfaces is defined) and node.interfaces %}
+        interfaces:
+{% else %}
+        interfaces: []
+{% endif %}
+{% for interface in node.interfaces %}
+        - network:      {{interface.network}}
+          ipv4_fixed:   [{{ interface.ipv4_fixed   | join(', ') }}]
+          ipv4_allowed: [{{ interface.ipv4_allowed | join(', ') }}]
+          ipv6_fixed:   [{{ interface.ipv6_fixed   | join(', ') }}]
+          ipv6_allowed: [{{ interface.ipv6_allowed | join(', ') }}]
+{% if interface.type is defined %}
+          type:         {{interface.type}}
+{% endif %}
+{% if (interface.rules is defined) and interface.rules %}
+          rules:
+{% else %}
+          rules:        []
+{% endif %}
+{% for rule in interface.rules %}
+          - direction: {{rule.direction}}
+            mode:      {{rule.mode}}
+            group:     {{rule.group}}
+            protocol:  {{rule.protocol}}
+            min:       {{rule.min}}
+            max:       {{rule.max}}
+            family:    {{rule.family}}
+            prefix:    {{rule.prefix}}
+{% endfor %}{# rules #}
+{% endfor %}{# interfaces #}
+{% if (node.dependencies is defined) and node.dependencies %}
+        dependencies:
+{% else %}
+        dependencies:   []
+{% endif %}
+{% for dependency in node.dependencies %}
+        - {service: {{dependency.service}}, network: {{dependency.network}}}
+{% endfor %}{# dependencies #}
+{% if (node.services is defined) and node.services %}
+        services:
+{% else %}
+        services:       []
+{% endif %}
+{% for service in node.services %}
+        - name:    {{service.name}}
+          network: {{service.network}}
+          ports:
+{% for port in service.ports %}
+          - { protocol: {{port.protocol}}, min: {{port.min}}, max: {{port.max}} }
+{% endfor %}{# ports #}
+{% endfor %}{# services #}
+{% endfor %}{# nodes #}
+{% endfor %}{# components #}
+{% endfor %}{# tenants #}
+{% endfor %}{# vnfs #}

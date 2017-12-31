@@ -1,0 +1,67 @@
+---
+"$schema": http://json-schema.org/draft-06/schema#
+title: Tenant
+description: A virtual data center
+type: object
+properties:
+  name:
+    type: string
+    minLength: 3
+    maxLength: 256
+  description:
+    type: string
+    maxLength: 2048
+  state:
+    enum:
+    - initial
+    - creating
+    - created
+    - configuring
+    - starting
+    - started
+    - reconfiguring
+    - stopping
+    - deleting
+    - error
+  version:
+    type: string
+    pattern: "^V(\\d+)\\.(\\d+)\\.(\\d+)$"
+  datacenter:
+    type: string
+    minLength: 3
+    maxLength: 256
+  flavors:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type:      string
+          minLength: 3
+          maxLength: 256
+        vcpu:
+          type:      integer
+        memory:
+          type:      integer
+        swap:
+          type:      integer
+        disk:
+          type:      integer
+        ephemeral:
+          type:      integer
+        public:
+          type:      boolean
+    required:
+    - name
+    - vcpu
+    - memory
+    - swap
+    - disk
+    - ephemeral
+    - public
+required:
+- name
+- state
+- version
+- datacenter
+- flavors

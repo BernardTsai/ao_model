@@ -1,0 +1,74 @@
+tosca_definitions_version: TOSCA_dtag_profile_for_nfv_0_1_1
+
+description: VNF Template for the Clearwater tenant - 1.
+
+metadata:
+  template_name: Clearwater - TOSCA DTAG NFV TEMPLATE
+
+################################################################################
+
+topology_template:
+
+  node_templates:
+
+    # ----- BONO SERVER ------------------------------------------------------
+    /Clearwater/SOL/bono:
+      type: tosca.dtag.nodes.InternalComponent
+      properties:
+        name:         bono
+        version:      V1.0.0
+        state:        started
+        description:  Edge Proxy (SBC)
+        vnf:          Clearwater
+        tenant:       SOL
+        placement:    EXT
+        flavor:       m1.small
+        image:        ubuntu-17.04.5-x86_64
+        sizing:       {min: 1, max: 1, size: 1}
+        interfaces:
+          - network:    oam
+            ipv4_fixed: ["192.168.0.5"]
+          - network:    m2m1
+            ipv4_fixed: ["192.168.1.5"]
+          - network:    svc1
+        services:
+          - name:    ssh
+            network: oam
+            ports:
+              - { protocol: TCP, min: 22, max: 22 }
+          - name:    sip_sig
+            network: svc1
+            ports:
+              - { protocol: TCP, min: 5060, max: 5062 }
+              - { protocol: UDP, min: 5060, max: 5062 }
+          - name:    sip_all
+            network: m2m1
+            ports:
+              - { protocol: TCP, min: 5062, max: 5062 }
+          - name:    sip_sprout
+            network: m2m1
+            ports:
+              - { protocol: TCP, min: 5058, max: 5058 }
+          - name:    etcd
+            network: m2m1
+            ports:
+              - { protocol: TCP, min: 2380, max: 2380 }
+              - { protocol: TCP, min: 4000, max: 4000 }
+          - name:    snmp
+            network: oam
+            ports:
+              - { protocol: UDP, min: 161, max: 161 }
+          - name:    rtp
+            network: svc1
+            ports:
+              - { protocol: UDP, min: 32768, max: 65535 }
+        dependencies:
+          - {service: /Clearwater/SOL/proxy/web,       network: m2m1}
+          - {service: /Clearwater/SOL/sprout/sip_bono, network: m2m1}
+          - {service: /Clearwater/SOL/dime/rest_all,   network: m2m1}
+          - {service: /Clearwater/SOL/proxy/dns,       network: m2m1}
+          - {service: /Clearwater/SOL/ellis/etcd,      network: m2m1}
+          - {service: /Clearwater/SOL/sprout/etcd,     network: m2m1}
+          - {service: /Clearwater/SOL/homer/etcd,      network: m2m1}
+          - {service: /Clearwater/SOL/dime/etcd,       network: m2m1}
+          - {service: /Clearwater/SOL/vellum/etcd,     network: m2m1}

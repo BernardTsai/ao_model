@@ -1,0 +1,10 @@
+{
+  "ANSIBLE_MODULE_ARGS": {
+    "contrail_url": "http://198.18.148.124:8082",
+    "auth_url":     "http://198.18.148.124:35357/v2.0",
+    "username":     "admin",
+    "password":     "contrail123",
+    "project":      "testcase",
+    "secret":       "secret"
+  }
+}

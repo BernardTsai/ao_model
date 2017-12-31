@@ -1,0 +1,14 @@
+tosca_definitions_version: TOSCA_dtag_profile_for_nfv_0_1_1
+
+description: Test data
+
+topology_template:
+
+  node_templates:
+    test_vnf:
+      type: pannet.VNF
+      properties:
+        name:    Test
+        version: V1.0.0
+        state:   started
+        vendor:  Deutsche Telekom

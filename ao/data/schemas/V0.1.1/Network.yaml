@@ -1,0 +1,72 @@
+---
+"$schema": http://json-schema.org/draft-06/schema#
+title: Network
+description: A virtual network
+type: object
+properties:
+  name:
+    type: string
+    minLength: 3
+    maxLength: 256
+  description:
+    type: string
+    maxLength: 2048
+  state:
+    enum:
+    - initial
+    - creating
+    - created
+    - configuring
+    - starting
+    - started
+    - reconfiguring
+    - stopping
+    - deleting
+    - error
+  version:
+    type: string
+    pattern: "^V(\\d+)\\.(\\d+)\\.(\\d+)$"
+  ipv4:
+    type: object
+    properties:
+      cidr:
+        type: string
+        pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(?:\\/(?:[0-9]|[1-2][0-9]|3[0-2]))$"
+      gateway:
+        type: string
+        pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+      dns:
+        type: string
+        pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+      dhcp:
+        type: string
+        pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+      start:
+        type: string
+        pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+      end:
+        type: string
+        pattern: "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$"
+    required:
+    - cidr
+  ipv6:
+    type: object
+    properties:
+      cidr:
+        type: string
+      gateway:
+        type: string
+      dns:
+        type: string
+      dhcp:
+        type: string
+      start:
+        type: string
+      end:
+        type: string
+    required:
+    - cidr
+required:
+- name
+- state
+- version

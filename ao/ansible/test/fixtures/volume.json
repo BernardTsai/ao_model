@@ -1,0 +1,8 @@
+{
+  "tenant_name":  "testcase",
+  "cluster_name": "test",
+  "node_name":    "1",
+  "volume_name":  "volume",
+  "volume_size": 10,
+  "volume_type": "EXT"
+}

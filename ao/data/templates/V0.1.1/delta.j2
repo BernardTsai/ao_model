@@ -1,0 +1,38 @@
+---
+schema:      {{schema}}
+type:        Delta-Model
+context:     {{context}}
+version1:    {{version1}}
+version2:    {{version2}}
+# ------------------------------------------------------------------------------
+components:
+-----------
+{% for component in components %}
+  {{component.fqn}} ({{component.action}})
+{% endfor %}{# components #}
+vnfs:
+-----
+{% for vnf in vnfs %}
+  {{vnf.fqn}} ({{vnf.action }})
+  tenants:
+  --------
+{% for tenant in vnf.tenants %}
+    {{tenant.fqn}} ({{tenant.action }})
+    networks:
+    ---------
+{% for network in tenant.networks %}
+      {{network.fqn}} ({{network.action }})
+{% endfor %}{# networks #}
+    components:
+    -----------
+{% for component in tenant.components %}
+      {{component.fqn}} ({{component.action }})
+      nodes:
+      ------
+{% for node in component.nodes %}
+        {{node.fqn}} ({{node.action }})
+{% endfor %}{# nodes #}
+{% endfor %}{# components #}
+{% endfor %}{# tenants #}
+{% endfor %}{# vnfs #}
+# ------------------------------------------------------------------------------

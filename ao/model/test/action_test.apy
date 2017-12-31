@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from os                  import path
+from json                import loads
+from pannet.model.action import Action
+from unittest            import TestCase, expectedFailure
+from pytest              import mark
+
+class ActionTest(TestCase):
+    @staticmethod
+    def parse_json(filename):
+        filepath = path.join(path.dirname(__file__), "fixtures/{}.json".format(filename))
+        with open(filepath, "r") as stream:
+            return loads(stream.read())
+
+    @classmethod
+    def setUpClass(self):
+        pass
+
+    @classmethod
+    def tearDownClass(self):
+        pass
+
+    def test__01__model__create_model__pass(self):
+        # prepare
+        params = NetworkManagerTest.parse_json("model")
+
+        # run - test should fail if any exception occurs
+        try:
+            manager = Model(params=params)
+            result  = manager.get_result()
+        except Exception as exc:
+            self.fail("Failed with {}".format(str(exc)))
+
+        # check
+        self.assertEqual( result["changed"], True )
+
+        self.assertEqual( result["action"],  "create" )
+
+        self.assertEqual( result["state"], "active" )
+
+        self.assertIsNotNone( result["id"] )
