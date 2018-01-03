@@ -1,7 +1,0 @@
-{
-  "tenant_name":  "testcase",
-  "network_name": "network",
-  "route_target": "65412:12",
-  "ipv4_prefix":  "192.168.1.0",
-  "ipv4_length":  24
-}
