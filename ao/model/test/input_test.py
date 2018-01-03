@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from sys                import stdin
-from os                 import path
-from json               import loads
-from pannet.model.input import Input
-from unittest           import TestCase, expectedFailure
-from pytest             import mark
+from sys            import stdin
+from os             import path
+from json           import loads
+from ao.model.input import Input
+from unittest       import TestCase, expectedFailure
+from pytest         import mark
 
 class InputTest(TestCase):
     @classmethod

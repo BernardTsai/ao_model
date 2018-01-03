@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from os                  import path
-from yaml                import safe_load
-from pannet.model.render import Render
-from unittest            import TestCase, expectedFailure
-from pytest              import mark
+from os              import path
+from yaml            import safe_load
+from ao.model.render import Render
+from unittest        import TestCase, expectedFailure
+from pytest          import mark
 
 class RenderTest(TestCase):
     @staticmethod

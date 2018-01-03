@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from os                    import path
-from yaml                  import safe_load
-from pannet.model.input    import Input
-from pannet.model.validate import Validate
-from pannet.model.model    import Model
-from pannet.model.render   import Render
-from pannet.model.delta    import Delta
-from pannet.model.action   import Action
-from unittest              import TestCase, expectedFailure
-from pytest                import mark
+from os                import path
+from yaml              import safe_load
+from ao.model.input    import Input
+from ao.model.validate import Validate
+from ao.model.model    import Model
+from ao.model.render   import Render
+from ao.model.delta    import Delta
+from ao.model.action   import Action
+from unittest          import TestCase, expectedFailure
+from pytest            import mark
 
 class ModelTest(TestCase):
     @staticmethod

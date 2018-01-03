@@ -6,7 +6,7 @@ topology_template:
 
   node_templates:
     test_vnf:
-      type: pannet.VNF
+      type: ao.VNF
       properties:
         name:    Test
         version: V1.0.0

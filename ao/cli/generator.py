@@ -15,13 +15,13 @@
 #    - writes the results to stdout.
 # ------------------------------------------------------------------------------
 
-from argparse              import ArgumentParser
-from logging               import info, error, basicConfig, ERROR, WARNING, INFO, DEBUG
-from pannet.model.input    import Input
-from pannet.model.model    import Model
-from pannet.model.render   import Render
-from sys                   import stderr, exit
-from os                    import path
+from argparse         import ArgumentParser
+from logging          import info, error, basicConfig, ERROR, WARNING, INFO, DEBUG
+from ao.model.input   import Input
+from ao.model.model   import Model
+from ao.model.render  import Render
+from sys              import stderr, exit
+from os               import path
 
 # ------------------------------------------------------------------------------
 # schema version

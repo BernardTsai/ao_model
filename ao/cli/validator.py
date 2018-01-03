@@ -12,12 +12,12 @@
 #    complies with a given schema.
 # ------------------------------------------------------------------------------
 
-from argparse              import ArgumentParser
-from logging               import info, error, basicConfig, ERROR, WARNING, INFO, DEBUG
-from pannet.model.input    import Input
-from pannet.model.validate import Validate
-from sys                   import stderr, exit
-from os                    import path
+from argparse          import ArgumentParser
+from logging           import info, error, basicConfig, ERROR, WARNING, INFO, DEBUG
+from ao.model.input    import Input
+from ao.model.validate import Validate
+from sys               import stderr, exit
+from os                import path
 
 # ------------------------------------------------------------------------------
 # schema version

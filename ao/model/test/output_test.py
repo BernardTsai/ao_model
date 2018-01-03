@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from os                  import path
-from json                import loads
-from pannet.model.output import Output
-from unittest            import TestCase, expectedFailure
-from pytest              import mark
+from os              import path
+from json            import loads
+from ao.model.output import Output
+from unittest        import TestCase, expectedFailure
+from pytest          import mark
 
 class OutputTest(TestCase):
     @staticmethod
