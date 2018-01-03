@@ -17,7 +17,7 @@ setup(
     author               = "Bernard Tsai",
     author_email         = "bernard@tsai.eu",
     license              = "Apache License",
-    packages             = ["ao","ao.model","ao.cloud.","ao.ansible","ao.cli"],
+    packages             = ["ao","ao.model","ao.cli"],
     entry_points         = {
         'console_scripts': [
             'generator=ao.cli.generator:main',
@@ -26,6 +26,6 @@ setup(
     },
     package_dir          = {"ao": "ao" },
     package_data         = {"ao": ["data/schemas/V0.1.1/*","data/templates/V0.1.1/*","data/test/V0.1.1/*"] },
-    install_requires     = ["pyyaml","jsonschema","openstacksdk"],
+    install_requires     = ["pyyaml","jsonschema"],
     include_package_data = True,
     zip_safe             = False)
