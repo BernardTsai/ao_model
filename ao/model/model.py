@@ -165,7 +165,7 @@ class Model():
             return
 
         # update the attributes
-        for attr in ["name","description","version","vendor","state"]:
+        for attr in ["name","description","version","vendor","state","public_key"]:
             self._replace( vnf, data, attr )
 
         self._set( vnfs, vnf )
@@ -467,6 +467,7 @@ class Model():
             "version":     "V0.0.0",
             "vendor":      "undefined",
             "state":       "defined",
+            "public_key":  "",
             "tenants":     [],
             "networks":    [],
             "partners":    []

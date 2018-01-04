@@ -9,6 +9,7 @@ tenant:
   description: "{{tenant.description}}"
   password:    "secret"
   cloud:       "{{tenant.datacenter}}"
+  public_key:  "{{vnf.public_key}}"
 
 security_groups:
 {% for component in tenant.components %}
