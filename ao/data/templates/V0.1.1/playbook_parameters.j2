@@ -1,6 +1,9 @@
 {% for vnf in vnfs %}
 {% for tenant in vnf.tenants %}
 ---
+vnf:
+  name:        "{{vnf.fqn[1:]}}"
+
 tenant:
   name:        "{{tenant.fqn[1:]|replace('/','_')}}"
   description: "{{tenant.description}}"
