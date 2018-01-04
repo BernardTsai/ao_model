@@ -5,7 +5,7 @@ tenant:
   name:        "{{tenant.fqn[1:]|replace('/','_')}}"
   description: "{{tenant.description}}"
   password:    "secret"
-  cloud:       "SOL-B"
+  cloud:       "{{tenant.datacenter}}"
 
 security_groups:
 {% for component in tenant.components %}
