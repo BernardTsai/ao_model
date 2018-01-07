@@ -22,10 +22,11 @@ setup(
         'console_scripts': [
             'generator=ao.cli.generator:main',
             'validator=ao.cli.validator:main'
+            'splitter=ao.cli.splitter:main'
         ]
     },
     package_dir          = {"ao": "ao" },
     package_data         = {"ao": ["data/schemas/V0.1.1/*","data/templates/V0.1.1/*","data/test/V0.1.1/*"] },
-    install_requires     = ["pyyaml","jsonschema"],
+    install_requires     = ["pyyaml","jsonschema","jinja2"],
     include_package_data = True,
     zip_safe             = False)

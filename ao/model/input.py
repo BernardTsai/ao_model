@@ -30,7 +30,7 @@ class Input():
         self.object    = None
 
     # --------------------------------------------------------------------------
-    def read(self, filename=None):
+    def read(self, filename=None, yaml=True):
         """Read data from STDIN or a file"""
 
         self.filename = filename
@@ -49,7 +49,10 @@ class Input():
                 with open( self.filename, 'r' ) as stream:
                     self.data = stream.read()
 
-            self.object = yaml.safe_load(self.data)
+            if yaml:
+                self.object = yaml.safe_load(self.data)
+            else:
+                self.object = self.data
         except Exception as e:
             self.object = None
 
