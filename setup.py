@@ -20,9 +20,9 @@ setup(
     packages             = ["ao","ao.model","ao.cli"],
     entry_points         = {
         'console_scripts': [
+            'splitter=ao.cli.splitter:main',
             'generator=ao.cli.generator:main',
             'validator=ao.cli.validator:main'
-            'splitter=ao.cli.splitter:main'
         ]
     },
     package_dir          = {"ao": "ao" },

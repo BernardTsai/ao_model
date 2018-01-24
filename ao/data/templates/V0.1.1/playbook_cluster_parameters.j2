@@ -1,0 +1,50 @@
+{% for vnf in vnfs %}
+{% for tenant in vnf.tenants %}
+---
+vnf:
+  name:        "{{vnf.fqn[1:]}}"
+
+tenant:
+  name:        "{{tenant.fqn[1:]|replace('/','_')}}"
+  description: "{{tenant.description}}"
+  password:    "secret"
+  cloud:       "{{tenant.datacenter}}"
+  public_key:  "{{vnf.public_key}}"
+
+clusters:
+{% for component in tenant.components %}
+    {{component.fqn[1:]|replace('/','_')}}:
+      availability_zone: {{component.placement}}
+      flavor:            {{component.flavor}}
+      image:             {{component.image}}
+      key_name:          {{tenant.fqn[1:]|replace('/','_')}}_keypair
+      nics:
+{% for interface in component.interfaces %}
+      - port-name: {{component.fqn[1:]|replace('/','_')}}_{{index}}_{{interface.network.split('/')[-1]}}
+{% endfor %}{# interfaces #}
+{% endfor %}{# components #}
+
+{% set has_volumes = False -%}
+{% for component in tenant.components %}
+{% for volume in component.volumes %}
+{% set has_volumes = True -%}
+{% endfor %}{# volumes #}
+{% endfor %}{# components #}
+
+{% if has_volumes %}
+      volumes:
+{% else %}
+      volumes: []
+{% endif %}
+{% for component in tenant.components %}
+{% for volume in component.volumes %}
+      - name:        {{component.fqn[1:]|replace('/','_')}}_{{index}}_{{volume.name}}
+        server:      {{component.fqn[1:]|replace('/','_')}}_{{index}}
+        volume_type: {{component.placement}}
+        size:        {{volume.size}}
+        device:      {{volume.device}}
+{% endfor %}{# volumes #}
+{% endfor %}{# components #}
+
+{% endfor %}{# tenants #}
+{% endfor %}{# vnfs #}
